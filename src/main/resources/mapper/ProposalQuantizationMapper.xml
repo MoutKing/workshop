@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.ProposalQuantizationMapper">
+	<resultMap id="namelist" type="com.delta.workshop.model.ProposalQuantizationName">
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="id" property="id" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<resultMap id="ProposalQuantizatin" type="com.delta.workshop.model.ProposalQuantization">
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="currency" property="currency" jdbcType="VARCHAR" />
+		<result column="id" property="id" jdbcType="INTEGER" />
+		<result column="groupId" property="groupId" jdbcType="INTEGER" />
+		<result column="workshopId" property="workshopId" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<resultMap id="ProposalQuantizatinPhase" type="com.delta.workshop.model.ProposalQuantizationPhase">
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="id" property="id" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<resultMap id="ProposalQuantizatinBenefit" type="com.delta.workshop.model.ProposalQuantizationBenefit">
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="id" property="id" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<resultMap id="ProposalQuantizatinCost" type="com.delta.workshop.model.ProposalQuantizationCost">
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="id" property="id" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<resultMap id="ProposalQuantizatinItem" type="com.delta.workshop.model.ProposalQuantizationItem">
+		<result column="item" property="item" jdbcType="FLOAT" />
+		<result column="id" property="id" jdbcType="INTEGER" />
+		<result column="phaseId" property="quantizationPhaseId" jdbcType="INTEGER" />
+		<result column="benefitId" property="quantizationBenefitId" jdbcType="INTEGER" />
+		<result column="costId" property="quantizationCostId" jdbcType="INTEGER" />
+	</resultMap>
+
+	<select id="getListByWorkshopId" resultMap="namelist">
+		SELECT
+			quantization_id id,
+			quantization_name name
+		FROM
+			proposal_quantization 
+		
+		WHERE
+			workshop_id = #{workshopId}
+		ORDER BY id;
+	
+	
+	</select>
+	
+	<select id="getListByGroupId" resultMap="namelist">
+		SELECT
+			quantization_id id,
+			quantization_name name
+		FROM
+			proposal_quantization
+		WHERE
+			group_id = #{groupId}
+		ORDER BY id;
+	</select>
+	<select id="getList" resultMap="namelist">
+		SELECT
+			quantization_id id,
+			quantization_name name
+		FROM
+			proposal_quantization AS t1
+		JOIN groups AS t2 ON t1.workshop_id = t2.workshop_id
+		WHERE
+			t2.id = #{groupId}
+		ORDER BY id;
+	</select>
+	
+	
+	<select id="getProposalQuantizatin" resultMap="ProposalQuantizatin">
+		SELECT
+			quantization_name name,
+			quantization_id id,
+			group_id groupId,
+			currency currency
+			
+		FROM
+			proposal_quantization
+		WHERE
+			quantization_name = #{name};
+	
+	</select>
+
+	<select id="getProposalQuantizatinPhase" resultMap="ProposalQuantizatinPhase">
+		SELECT
+			quantization_phase_id id,
+			quantization_phase_name NAME
+		FROM
+			proposal_quantization_phase
+		WHERE
+			quantization_id = #{id}
+		ORDER BY id;
+	</select>
+	
+	<select id="getProposalQuantizatinBenefit" resultMap="ProposalQuantizatinBenefit">
+		SELECT
+			quantization_benefit_id id,
+			quantization_benefit_name NAME
+		FROM
+			proposal_quantization_benefit
+		WHERE
+			quantization_id = #{id}
+		ORDER BY id;
+	</select>
+	
+	<select id="getProposalQuantizatinCost" resultMap="ProposalQuantizatinCost">
+		SELECT
+			quantization_cost_id id,
+			quantization_cost_name NAME
+		FROM
+			proposal_quantization_cost
+		WHERE
+			quantization_id = #{id}
+		ORDER BY id;
+	</select>
+	
+	
+	<select id="getProposalQuantizatinItem" resultMap="ProposalQuantizatinItem">
+		SELECT
+			quantization_item_id id,
+			benefit_item  item,
+			quantization_benefit_id benefitId,
+			quantization_cost_id costId,
+			quantization_phase_id phaseId
+		FROM
+			proposal_quantization_item
+		WHERE
+			quantization_id = #{id}
+		ORDER BY id;
+	</select>
+	
+	<select id="getOpportunityBywid"  resultMap="ProposalQuantizatin">
+		SELECT DISTINCT
+			NAME name,
+			workshop_id workshopId
+		FROM
+			opportunity_workshop
+		WHERE
+			workshop_id = #{workshopId}
+	</select>
+	
+	<select id="getOpportunityBygid"  resultMap="ProposalQuantizatin">
+		SELECT DISTINCT
+			t1.NAME name,
+			t1.workshop_id workshopId
+		FROM
+			opportunity_workshop AS t1
+		JOIN groups AS t2 ON t1.workshop_id = t2.workshop_id
+		WHERE
+			t2.id = #{groupId};
+	</select>
+	
+	<update id="updateProposalQuantizatin" parameterType="com.delta.workshop.model.ProposalQuantization">
+		UPDATE proposal_quantization
+		<set>
+			<if test="name != null and name != ''">
+				quantization_name =	#{name},
+			</if>
+			<if test="currency != null and currency != ''">
+				currency = #{currency},
+			</if>
+			<if test="groupId != null and groupId != ''">
+				group_id = #{groupId}
+			</if>
+		
+		</set>
+		WHERE
+			quantization_id = #{id};
+
+	</update>
+	
+	<update id="updateProposalQuantizatinPhase" parameterType="com.delta.workshop.model.ProposalQuantizationPhase">
+		UPDATE proposal_quantization_phase
+		SET quantization_phase_name = #{name}
+		WHERE
+			quantization_phase_id = #{id};
+	</update>
+	
+	<update id="updateProposalQuantizatinBenefit" parameterType="com.delta.workshop.model.ProposalQuantizationBenefit">
+		UPDATE proposal_quantization_benefit
+		SET quantization_benefit_name = #{name}
+		WHERE
+			quantization_benefit_id = #{id};
+	</update>
+	
+	<update id="updateProposalQuantizatinCost" parameterType="com.delta.workshop.model.ProposalQuantizationCost">
+		UPDATE proposal_quantization_cost
+		SET quantization_cost_name = #{name}
+		WHERE
+			quantization_cost_id = #{id};
+	</update>
+	
+	<update id="updateProposalQuantizatinItem" parameterType="com.delta.workshop.model.ProposalQuantizationItem">
+		UPDATE proposal_quantization_item
+		SET benefit_item = #{item}
+		WHERE
+			quantization_item_id = #{id};
+	</update>
+	
+	<insert id="insertProposalQuantizatin" useGeneratedKeys="true" keyProperty="id" parameterType="com.delta.workshop.model.ProposalQuantization">
+		INSERT INTO proposal_quantization (quantization_name, group_id,currency) values (#{name}, #{groupId}, #{currency});
+	</insert>
+	
+	<insert id="insertProposalQuantizatins" useGeneratedKeys="true" keyProperty="id" parameterType="com.delta.workshop.model.ProposalQuantization">
+		INSERT INTO proposal_quantization 
+			(quantization_name,workshop_id) 
+		values 
+		<foreach collection="list" item="item" index="index" separator="," >  
+        	(#{item.name},#{item.workshopId})   
+    	</foreach> 
+	</insert>
+	
+	<insert id="insertProposalQuantizatinPhase" parameterType="com.delta.workshop.model.ProposalQuantizationPhase">
+		INSERT INTO proposal_quantization_phase (quantization_phase_name, quantization_id) values (#{name}, #{quantizationId});
+	</insert>
+	
+	<insert id="insertProposalQuantizatinBenefit" parameterType="com.delta.workshop.model.ProposalQuantizationBenefit">
+		INSERT INTO proposal_quantization_benefit (quantization_benefit_name, quantization_id) values (#{name}, #{quantizationId});
+	</insert>
+	
+	<insert id="insertProposalQuantizatinCost" parameterType="com.delta.workshop.model.ProposalQuantizationCost">
+		INSERT INTO proposal_quantization_cost (quantization_cost_name, quantization_id) values (#{name}, #{quantizationId});
+	</insert>
+	
+	<insert id="insertProposalQuantizatinItem" parameterType="com.delta.workshop.model.ProposalQuantizationItem">
+		INSERT INTO proposal_quantization_item (benefit_item, quantization_id,quantization_phase_id,quantization_benefit_id,quantization_cost_id) 
+		values (#{item}, #{quantizationId}, #{quantizationPhaseId}, #{quantizationBenefitId}, #{quantizationCostId});
+	</insert>
+	
+	<delete id="deletePhase" parameterType="com.delta.workshop.model.ProposalQuantization">
+		DELETE FROM proposal_quantization_phase  WHERE  quantization_id = #{id};
+	</delete>
+	
+	<delete id="deleteBenefit" parameterType="com.delta.workshop.model.ProposalQuantization">
+		DELETE FROM proposal_quantization_benefit  WHERE  quantization_id = #{id};
+	</delete>
+	
+	<delete id="deleteCost" parameterType="com.delta.workshop.model.ProposalQuantization">
+		DELETE FROM proposal_quantization_cost  WHERE  quantization_id = #{id};
+	</delete>
+	
+	<delete id="deleteItem" parameterType="com.delta.workshop.model.ProposalQuantization">
+		DELETE FROM proposal_quantization_item  WHERE  quantization_id = #{id};
+	</delete>
+	
+	
+</mapper>

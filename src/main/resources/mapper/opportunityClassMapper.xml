@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.OpportunityClassMapper">
+	<resultMap id="BaseResultMap" type="com.delta.workshop.model.OpportunityClass">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="industry_id" property="industryId" jdbcType="INTEGER" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="edit_time" property="editTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, name, industry_id, create_time, edit_time
+	</sql>
+	
+	<select id="getAll" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from opportunity_class
+		where industry_id = #{industryId,jdbcType=INTEGER} order by id desc
+	</select>
+
+	<insert id="insert" parameterType="com.delta.workshop.model.OpportunityClass">
+		insert into opportunity_class (name, industry_id) values
+		(#{name,jdbcType=VARCHAR}, #{industryId,jdbcType=INTEGER})
+	</insert>
+
+	<update id="edit" parameterType="com.delta.workshop.model.OpportunityClass">
+		update opportunity_class set name =
+		#{name,jdbcType=VARCHAR},industry_id =
+		#{industryId,jdbcType=INTEGER},edit_time =
+		#{editTime,jdbcType=TIMESTAMP}
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from opportunity_class where id = #{id,jdbcType=INTEGER}
+	</delete>
+</mapper>

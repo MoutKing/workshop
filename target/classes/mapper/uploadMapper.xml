@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.UploadMapper">
+	
+	<insert id="add" >
+		INSERT INTO upload_file (filepath,`key`,workshop_id) VALUES (#{filepath},#{key},#{workshopId})
+	</insert>
+	
+	<select id="getFilepath" resultType = "string">
+		select filepath FROM upload_file WHERE workshop_id = #{workshopId} and `key` = #{key}
+	</select>
+	
+	<delete id="clearpath">
+		delete from upload_file where workshop_id = #{workshopId} and `key` = #{key} 
+	</delete>
+	
+</mapper>

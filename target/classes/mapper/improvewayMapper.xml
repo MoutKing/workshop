@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.ImprovewayMapper">
+	<resultMap id="BaseResultMap" type="com.delta.workshop.model.Improveway">
+	    <id column="id" jdbcType="INTEGER" property="id" />
+	    <result column="type" jdbcType="VARCHAR" property="type" />
+	    <result column="subject" jdbcType="VARCHAR" property="subject" />
+	    <result column="check_item" jdbcType="VARCHAR" property="checkItem" />
+	    <result column="improveway" jdbcType="VARCHAR" property="improveway" />
+	    <result column="group_id" jdbcType="INTEGER" property="groupId" />
+	    <result column="workshop_id" jdbcType="INTEGER" property="workshopId" />
+	    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+	    <result column="edit_time" jdbcType="TIMESTAMP" property="editTime" />
+  	</resultMap>
+	<sql id="Base_Column_List">
+		id, type, subject, check_item, improveway, group_id, workshop_id, create_time, edit_time
+	</sql>
+	<select id="getbyGroup" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from improve_way
+		where workshop_id = #{workshopId} and group_id = #{groupId,jdbcType=INTEGER} order by id desc
+	</select>
+	
+	<select id="getImprovewaytDisplayInfo" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select id, type, subject, check_item, improveway, workshop_id, create_time, edit_time
+		from improve_way
+		where workshop_id = #{workshopId} and group_id is null order by id desc
+	</select>
+	
+	<insert id="add" parameterType="com.delta.workshop.model.Improveway" useGeneratedKeys="true" keyProperty="id">
+		 insert into improve_way (type, subject, check_item, improveway, group_id, workshop_id)
+    	 values (#{type,jdbcType=VARCHAR}, #{subject,jdbcType=VARCHAR}, 
+      		#{checkItem,jdbcType=VARCHAR}, #{improveway,jdbcType=VARCHAR}, #{groupId,jdbcType=INTEGER}, 
+      		#{workshopId,jdbcType=INTEGER})
+	</insert>
+
+	<update id="edit" parameterType="com.delta.workshop.model.Improveway">
+		 update improve_way set 
+		 type = #{type,jdbcType=VARCHAR},
+      	 `subject` = #{subject,jdbcType=VARCHAR},
+      	 check_item = #{checkItem,jdbcType=VARCHAR},
+      	 improveway = #{improveway,jdbcType=VARCHAR},
+      	 group_id = #{groupId,jdbcType=INTEGER},
+       	 workshop_id = #{workshopId,jdbcType=INTEGER},
+      	 edit_time = #{editTime,jdbcType=TIMESTAMP}
+         where id = #{id,jdbcType=INTEGER}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from improve_way where id = #{id,jdbcType=INTEGER}
+	</delete>
+	
+	<delete id="clearRelation">
+		delete from improve_way where improve_way_template_id in
+		<foreach collection="list" item="item" index="index" open="("  separator="," close=")">
+			#{item.id}
+		</foreach>
+	</delete>
+	
+	<insert id="addDisplayBytemplate" parameterType="java.util.List">
+		INSERT INTO improve_way (type, subject, check_item, improveway, workshop_id,improve_way_template_id) VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.type},#{item.subject},#{item.checkItem},#{item.improveway},#{item.workshopId},#{item.id})
+		</foreach>
+	</insert>
+</mapper>

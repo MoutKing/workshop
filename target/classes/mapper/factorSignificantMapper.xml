@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.FactorSignificantMapper">
+
+	<resultMap id="cases" type="com.delta.workshop.model.Cases">
+		<result property="id" column="id" jdbcType="INTEGER"/>
+		<result property="name" column="name" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<resultMap id="score" type="com.delta.workshop.model.AnalysisScore">
+		<result property="id" column="id" jdbcType="INTEGER"/>
+		<result property="score" column="score" jdbcType="VARCHAR"/>
+		<result property="machine" column="machine" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<resultMap id="data" type="com.delta.workshop.model.FactorData">
+		<result property="id" column="id" jdbcType="INTEGER"/>
+		<result property="x" column="x" jdbcType="FLOAT"/>
+		<result property="y" column="y" jdbcType="FLOAT"/>
+	</resultMap>
+	
+	<resultMap id="relation" type="com.delta.workshop.model.FactorRelation">
+		<result property="id" column="id" jdbcType="INTEGER"/>
+		<result property="parameter" column="parameter" jdbcType="VARCHAR"/>
+		<result property="realtion" column="relation" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<select id="getCases" resultMap="cases" >
+		SELECT 
+			DISTINCT case_id id, casename name 
+		FROM `case`
+		ORDER BY casename ASC;
+	</select>
+	
+	<select id="getMeasureStation" resultType="String" >
+		select 
+			DISTINCT measure_station 
+		from 
+			t_reveal_seclection 
+		where 
+			case_id = #{casesId}
+		ORDER BY measure_station ASC;
+	</select>
+	
+	<select id="getAnalysis" resultType="String" >
+		select 
+			DISTINCT analysis_method 
+		from 
+			t_reveal_seclection 
+		where 
+			case_id = #{casesId};
+	</select>
+	
+	<select id="getAnalysisLevel" resultType="String" >
+		select 
+			DISTINCT analysis_level 
+		from 
+			t_reveal_seclection 
+		where 
+			case_id = #{casesId};
+	</select>
+	
+	<select id="getFeature" resultType="String" >
+		SELECT DISTINCT
+		    feature
+		FROM
+		    t_reveal_seclection
+		WHERE
+		    case_id = #{casesId}
+		AND measure_station = #{measureStation}
+		ORDER BY feature ASC;
+	</select>
+	
+	<select id="getMajorStation" resultType="String" >
+		SELECT DISTINCT
+		    major_station
+		FROM
+		    t_reveal_seclection
+		WHERE
+		    case_id = #{casesId}
+		AND measure_station = #{measureStation}
+		ORDER BY major_station ASC;
+	</select>
+	
+	<select id="getMachine" resultType="String" >
+		SELECT DISTINCT
+		    machine
+		FROM
+		    t_reveal_seclection
+		WHERE
+		    case_id = #{casesId}
+		        AND measure_station = #{measureStation}
+		        AND major_station = #{majorStation}
+		 ORDER BY machine ASC;
+	</select>
+	
+	<select id="getMachineParameter" resultType="String" >
+		SELECT DISTINCT
+		    machine_parameter
+		FROM
+		    t_reveal_seclection
+		WHERE
+		    case_id = #{casesId}
+		        AND measure_station = #{measureStation}
+		        AND major_station = #{majorStation}
+		        AND machine = #{machine}
+		ORDER BY machine_parameter ASC;
+	</select>
+
+	<select id="getSeclectId" resultMap="score" parameterType="com.delta.workshop.model.FactorConditions">
+		SELECT DISTINCT
+		     selection_id id,score,machine
+		FROM
+		    t_reveal_seclection
+		WHERE
+		    case_id = #{casesId}
+	    	<if test=" measureStation != null and  measureStation != '' ">
+       			AND measure_station = #{measureStation}
+       		</if>
+       		<if test=" majorStation != null and  majorStation != '' ">
+       			AND major_station = #{majorStation}
+       		</if>
+	        <if test=" machine != null and  machine != '' ">
+       			AND machine = #{machine}
+       		</if>
+       		<if test=" analysisLevel != null and  analysisLevel != '' ">
+       			AND analysis_level = #{analysisLevel}
+       		</if>
+       		<if test=" analysis != null and  analysis != '' ">
+       			AND analysis_method = #{analysis}
+       		</if>
+       		<if test=" machineParameter != null and  machineParameter != '' ">
+       			AND machine_parameter = #{machineParameter}
+       		</if>
+	</select>
+	
+	<select id="getFactorData" resultMap="data" parameterType="int">
+		SELECT 
+		    feature_value y, machine_parameter_value x
+		FROM
+		    t_factor_distribution
+		WHERE
+		    selection_id = #{id};
+	</select>
+	<select id="getMultiData" resultMap="relation" parameterType="int">
+		SELECT 
+		    multiple_id id, parameter, relation
+		FROM
+		    t_factor_interaction
+		WHERE
+		    selection_id = #{id};
+	</select>
+	<select id="getMultiRelationData" resultMap="data" parameterType="int">
+		SELECT 
+		    x_value x, y_value y
+		FROM
+		    t_multi_distribution
+		WHERE
+		    multiple_id = #{id};
+	</select>
+
+
+</mapper>

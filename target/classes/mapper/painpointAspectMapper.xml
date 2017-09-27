@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.PainpointAspectMapper">
+	<resultMap id="painpointAspectMap" type="com.delta.workshop.model.PainpointAspect">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="industryId" column="industry_id" />
+		<result property="createTime" column="create_time" />
+		<result property="editTime" column="edit_time" />
+	</resultMap>
+	<select id="getbyIndustry" resultMap="painpointAspectMap">
+		SELECT id, name,industry_id,create_time,edit_time FROM
+		painpoint_aspect WHERE industry_id = #{industryId} ORDER BY id desc
+	</select>
+
+	<insert id="add" parameterType="com.delta.workshop.model.PainpointAspect" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO painpoint_aspect (name,industry_id) VALUES
+		(#{name},#{industryId})
+	</insert> 
+
+	<update id="edit" parameterType="com.delta.workshop.model.PainpointAspect">
+		UPDATE painpoint_aspect SET name
+		= #{name},industry_id = #{industryId},edit_time = #{editTime} WHERE id
+		= #{id}
+	</update>
+
+	<delete id="delete">
+		DELETE FROM painpoint_aspect WHERE id = #{id}
+	</delete>
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.DataQualityMapper">
+	<resultMap id="filterkeyMap" type="com.delta.workshop.model.FilterKey">
+		<id property="id" column="id" />
+		<result property="workshopId" column="workshop_id" />
+		<result property="parentId" column="parent_id" />
+		<result property="name" column="name" />
+		<result property="description" column="description" />
+	</resultMap>
+	
+	<resultMap id="filtervalueMap" type="com.delta.workshop.model.FilterValue">
+		<id property="id" column="id" />
+		<result property="keyId" column="key_id" />
+		<result property="parentId" column="parent_id" />
+		<result property="name" column="name" />
+		<result property="description" column="description" />
+	</resultMap>
+	
+	<resultMap id="dataQualityMap" type="com.delta.workshop.model.DataQuality">
+		<id property="id" column="id" />
+		<result property="total" column="total" />
+		<result property="zeros" column="zeros" />
+		<result property="erratics" column="erratics" />
+		<result property="outliers" column="outliers" />
+		<result property="missings" column="missings" />
+		<result property="consistency" column="consistency" />
+	</resultMap>
+	
+	<select id="getFilterKey" resultMap="filterkeyMap">
+		SELECT id, workshop_id, parent_id, name, description from filter_key where workshop_id = #{workshopId} order by id
+	</select>
+	
+	<select id="getFilterValue" resultMap="filtervalueMap">
+		SELECT id, key_id, parent_id, name, description from filter_value where key_id = #{keyId} order by id
+	</select>
+	
+	<select id="getDataQuality" resultMap="dataQualityMap">
+		SELECT dq.id id, dq.total total, dq.zeros zeros, dq.erratics erratics, dq.outliers outliers, dq.missings missings, dq.consistency consistency 
+		FROM filter_value fv, data_quality dq, data_quality_filter dqf 
+		WHERE fv.id = dqf.filter_value_id AND dqf.data_id = dq.id AND fv.id = #{filterValueId}
+	</select>
+	
+</mapper>

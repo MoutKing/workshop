@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.PainpointMapper">
+	<resultMap id="painpointMap" type="com.delta.workshop.model.Painpoint">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="influence" column="influence" />
+		<result property="workshopId" column="workshop_id" />
+		<result property="factorId" column="factor_id" />
+		<result property="factorName" column="factor_name" />
+		<result property="aspectId" column="aspect_id" />
+		<result property="aspectName" column="aspect_name" />
+		<result property="groupId" column="group_id" />
+		<result property="createTime" column="create_time" />
+		<result property="editTime" column="edit_time" />
+	</resultMap>
+
+	<select id="getAll" resultMap="painpointMap">
+		select
+		t1.id id,t1.name name,
+		t1.influence influence,t1.group_id
+		group_id,
+		t1.aspect_id aspect_id,t1.factor_id factor_id,t1.workshop_id
+		workshop_id,
+		t2.`name` aspect_name,t3.`name` factor_name
+		from painpoint
+		t1 JOIN painpoint_aspect t2 on t1.aspect_id = t2.id
+		LEFT JOIN
+		painpoint_factor t3 ON t1.factor_id = t3.id
+		WHERE t1.workshop_id =
+		#{workshopId}
+		<if test="groupId!=null and groupId !=''">
+			and t1.group_id = #{groupId}
+		</if>
+		order by id desc
+	</select>
+
+	<insert id="add" parameterType="com.delta.workshop.model.Painpoint"
+		useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO painpoint
+		(name,influence,factor_id,aspect_id,workshop_id,group_id) VALUES
+		(#{name},#{influence},#{factorId},#{aspectId},#{workshopId},#{groupId})
+	</insert>
+
+	<update id="edit" parameterType="com.delta.workshop.model.Painpoint">
+		UPDATE painpoint SET name =
+		#{name},influence=#{influence},workshop_id=#{workshopId},
+		factor_id=#{factorId},aspect_id=#{aspectId}, group_id =
+		#{groupId},edit_time=#{editTime} WHERE id=#{id}
+	</update>
+
+	<delete id="delete">
+		DELETE FROM painpoint WHERE id = #{id}
+	</delete>
+
+	<select id="getPainpointDisplayInfo" resultMap="painpointMap">
+		select
+		t1.id id,t1.name name,
+		t1.influence influence,
+		t1.aspect_id aspect_id,
+		t1.factor_id factor_id,
+		t1.workshop_id workshop_id,
+		t2.`name` aspect_name,
+		t3.`name` factor_name
+		from painpoint_display t1 JOIN painpoint_aspect t2 on
+		t1.aspect_id = t2.id
+		LEFT JOIN painpoint_factor t3 ON t1.factor_id =
+		t3.id
+		WHERE t1.workshop_id = #{workshopId}
+		order by id desc
+	</select>
+
+	<insert id="addDisplayBySelf" parameterType="com.delta.workshop.model.Painpoint"
+		useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO painpoint_display
+		(name,influence,factor_id,aspect_id,workshop_id) VALUES
+		(#{name},#{influence},#{factorId},#{aspectId},#{workshopId})
+	</insert>
+
+	<update id="editDisplay" parameterType="com.delta.workshop.model.Painpoint">
+		UPDATE painpoint_display
+		SET name =
+		#{name},influence=#{influence},workshop_id=#{workshopId},
+		factor_id=#{factorId},aspect_id=#{aspectId},edit_time=#{editTime}
+		WHERE id=#{id}
+	</update>
+
+	<delete id="deleteDisplay">
+		DELETE FROM painpoint_display WHERE id = #{id}
+	</delete>
+
+	<delete id="clearRelation">
+		DELETE FROM painpoint_display where painpoint_template_id in
+		<foreach collection="list" item="item" index="index" open="("
+			separator="," close=")">
+			#{item.id}
+		</foreach>
+	</delete>
+
+	<insert id="addDisplayBytemplate" parameterType="java.util.List">
+		INSERT INTO painpoint_display
+		(name,influence,factor_id,aspect_id,workshop_id,painpoint_template_id)
+		VALUES
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.name},#{item.influence},#{item.factorId},#{item.aspectId},#{item.workshopId},#{item.id})
+		</foreach>
+	</insert>
+</mapper>

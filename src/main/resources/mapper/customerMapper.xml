@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.CustomerMapper">
+	<resultMap id="customerMap" type="com.delta.workshop.model.Customer">
+		<id property="customer" column="customer" />
+		<result property="logo" column="logo" />
+		<result property="createTime" column="create_time" />
+		<result property="editTime" column="edit_time" />
+	</resultMap>
+	
+	<select id="getAll" resultMap="customerMap">
+		SELECT customer,logo, create_time, edit_time FROM customer ORDER BY customer
+	</select>
+	
+	<select id="getCustomerById" resultType="com.delta.workshop.model.Customer">
+		SELECT customer, logo, create_time, edit_time FROM customer where customer = #{customer}
+	</select>
+	
+	<select id="getFilepath" resultType="string">
+		SELECT logo FROM customer where customer = (select customer from workshop where id = #{workshopId})
+	</select>
+	
+	
+	
+	<update id="setLogo">
+		update customer set logo = #{logo} where customer = #{customer}
+	</update>
+</mapper>

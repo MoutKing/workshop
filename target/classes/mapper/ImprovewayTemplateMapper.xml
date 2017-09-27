@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.delta.workshop.mapper.ImprovewayTemplateMapper">
+  <resultMap id="BaseResultMap" type="com.delta.workshop.model.ImprovewayTemplate">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="subject" jdbcType="VARCHAR" property="subject" />
+    <result column="check_item" jdbcType="VARCHAR" property="checkItem" />
+    <result column="improveway" jdbcType="VARCHAR" property="improveway" />
+    <result column="workshop_id" jdbcType="INTEGER" property="workshopId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="edit_time" jdbcType="TIMESTAMP" property="editTime" />
+    <result column="industry_id" jdbcType="INTEGER" property="industryId" />
+    <result column="target_id" jdbcType="INTEGER" property="targetId" />
+    <result column="customer" jdbcType="VARCHAR" property="customer" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, type, subject, check_item, improveway, workshop_id, create_time, edit_time, industry_id, 
+    target_id, customer
+  </sql>
+  <select id="getImprovewayTemplateByCondition" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from improve_way_template
+    WHERE 1=1
+		<if test="industryId !=null and industryId !=''">
+			AND industry_id = #{industryId}
+		</if>
+		<if test="targetId !=null and targetId !=''">
+			AND target_id = #{targetId}
+		</if>
+		<if test="customer!=null and customer!=''">
+			AND customer = #{customer}
+		</if>
+		ORDER BY id
+  </select>
+  
+  <insert id="add" parameterType="com.delta.workshop.model.ImprovewayTemplate" useGeneratedKeys="true" keyProperty="id">
+    insert into improve_way_template (type, subject, 
+      check_item, improveway, workshop_id, industry_id, 
+      target_id, customer)
+    values (#{type,jdbcType=VARCHAR}, #{subject,jdbcType=VARCHAR}, 
+      		#{checkItem,jdbcType=VARCHAR}, #{improveway,jdbcType=VARCHAR},
+      		#{workshopId,jdbcType=INTEGER}, #{industryId,jdbcType=INTEGER}, 
+      		#{targetId,jdbcType=INTEGER}, #{customer,jdbcType=VARCHAR})
+  </insert>
+ 
+  <update id="edit" parameterType="com.delta.workshop.model.ImprovewayTemplate">
+    update improve_way_template
+    set type = #{type,jdbcType=VARCHAR},
+      subject = #{subject,jdbcType=VARCHAR},
+      check_item = #{checkItem,jdbcType=VARCHAR},
+      improveway = #{improveway,jdbcType=VARCHAR},
+      workshop_id = #{workshopId,jdbcType=INTEGER},
+      edit_time = #{editTime,jdbcType=TIMESTAMP},
+      industry_id = #{industryId,jdbcType=INTEGER},
+      target_id = #{targetId,jdbcType=INTEGER},
+      customer = #{customer,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  
+  <delete id="delete" parameterType="java.lang.Integer">
+    delete from improve_way_template
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  
+</mapper>

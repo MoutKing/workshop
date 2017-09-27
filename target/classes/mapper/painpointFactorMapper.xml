@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.PainpointFactorMapper">
+	<resultMap id="painpointFactorMap" type="com.delta.workshop.model.PainpointFactor">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="industryId" column="industry_id" />
+		<result property="createTime" column="create_time" />
+		<result property="editTime" column="edit_time" />
+	</resultMap>
+	<select id="getbyIndustry" resultMap="painpointFactorMap">
+		SELECT id, name, industry_id,create_time,edit_time FROM painpoint_factor WHERE industry_id = #{industryId} ORDER BY id desc
+	</select>
+	
+	<insert id="add" parameterType="com.delta.workshop.model.PainpointFactor" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO painpoint_factor (name,industry_id) VALUES (#{name},#{industryId})
+	</insert>
+	
+	<update id="edit" parameterType="com.delta.workshop.model.PainpointFactor">
+		UPDATE painpoint_factor SET name = #{name}, industry_id = #{industryId},edit_time = #{editTime} WHERE id = #{id}
+	</update>
+	
+	<delete id="delete">
+		DELETE FROM painpoint_factor WHERE id = #{id}
+	</delete>
+</mapper>

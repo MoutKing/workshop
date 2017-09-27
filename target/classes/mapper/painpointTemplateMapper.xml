@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.PainpointTemplateMapper">
+	<resultMap id="painpointTemplateMap" type="com.delta.workshop.model.PainpointTemplate">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="influence" column="influence" />
+		<result property="industryId" column="industry_id" />
+		<result property="customer" column="customer" />
+		<result property="targetId" column="target_id" />
+		<result property="aspectId" column="aspect_id" />
+		<result property="aspectName" column="aspect_name" />
+		<result property="factorId" column="factor_id" />
+		<result property="factorName" column="factor_name" />
+		<result property="createTime" column="create_time" />
+		<result property="editTime" column="edit_time" />
+	</resultMap>
+
+	<select id="getPainpointTemplateByCondition" resultMap="painpointTemplateMap">
+	select
+		t1.id id,t1.name name,
+		t1.influence influence,
+		t1.industry_id industry_id,
+		t1.target_id target_id,
+		t1.customer customer,
+		t1.aspect_id aspect_id,t1.factor_id factor_id,
+		t2.`name` aspect_name,t3.`name` factor_name
+		from painpoint_template t1 JOIN painpoint_aspect t2 on t1.aspect_id = t2.id
+		LEFT JOIN painpoint_factor t3 ON t1.factor_id = t3.id
+		WHERE 1=1
+		<if test="industryId!=null and industryId!=''">
+			AND t1.industry_id = #{industryId}
+		</if>
+		<if test="targetId!=null and targetId!=''">
+			AND t1.target_id = #{targetId}
+		</if>
+		<if test="customer!=null and customer!=''">
+			AND t1.customer = #{customer}
+		</if>
+		ORDER BY id
+	</select>
+
+	<insert id="add" parameterType="com.delta.workshop.model.PainpointTemplate"
+		useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO painpoint_template
+		(name,influence,customer,target_id,industry_id,aspect_id,factor_id) VALUES
+		(#{name},#{influence},#{customer},#{targetId},#{industryId},#{aspectId},#{factorId})
+	</insert>
+
+	<update id="edit" parameterType="com.delta.workshop.model.PainpointTemplate">
+		UPDATE painpoint_template SET
+		name = #{name},
+		influence = #{influence},
+		customer = #{customer},
+		target_id = #{targetId},
+		industry_id = #{industryId},
+		aspect_id = #{aspectId},
+		factor_id = #{factorId},
+		edit_time = #{editTime} 
+		WHERE id = #{id}
+	</update>
+	
+
+	<delete id="delete">
+		DELETE FROM painpoint_template WHERE id = #{id}
+	</delete>
+
+</mapper>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.BlueprintMapper">
+
+	<resultMap type="com.delta.workshop.model.BlueprintDomain"
+		id="blueprintDomainMapper">
+		<id property="domainId" column="blueprint_domain__id" />
+		<result property="domainName" column="domain_name" />
+		<result property="workshopId" column="workshop_id" />
+	</resultMap>
+
+	<insert id="addBlueprintDomainsFromProposal">
+		INSERT INTO blueprint_domain
+		(domain_name,workshop_id)
+		SELECT domain_name,workshop_id FROM proposal
+		t
+		JOIN proposal_domain t1 ON t.proposal_id = t1.proposal_id
+		WHERE t.workshop_id =#{workshopId}
+		AND NOT EXISTS(SELECT * FROM
+		blueprint_domain WHERE blueprint_domain.domain_name=t1.domain_name AND
+		blueprint_domain.workshop_id = t.workshop_id)
+	</insert>
+
+	<insert id="addBlueprintDomain">
+		INSERT INTO blueprint_domain (domain_name,
+		workshop_id) VALUES (#{domainName},#{workshopId})
+	</insert>
+
+	<update id="editBlueprintDomain">
+		UPDATE blueprint_domain SET domain_name=#{domainName}
+		WHERE blueprint_domain__id =#{domainId}
+	</update>
+
+	<select id="getBlueprintDomains" resultMap="blueprintDomainMapper">
+		SELECT
+		blueprint_domain__id, domain_name, workshop_id FROM blueprint_domain
+		WHERE workshop_id = #{workshopId} order by blueprint_domain__id
+	</select>
+
+	<delete id="deleteBlueprintDomain">
+		DELETE FROM blueprint_domain WHERE
+		blueprint_domain__id =#{domainId}
+	</delete>
+
+	<resultMap type="com.delta.workshop.model.BlueprintPhase" id="blueprintPhaseMapper">
+		<id property="phaseId" column="blueprint_phase_id" />
+		<result property="workshopId" column="workshop_id" />
+		<result property="phaseName" column="name" />
+		<result property="startTime" column="start_time" />
+		<result property="length" column="length" />
+		<result property="unit" column="unit" />
+	</resultMap>
+
+	<select id="getBlueprintPhase" resultMap="blueprintPhaseMapper">
+		SELECT blueprint_phase_id, workshop_id, `name`, start_time, length,
+		unit FROM blueprint_phase WHERE workshop_id = #{workshopId}
+		<if test="phaseId!=null">
+			AND blueprint_phase_id = #{phaseId}
+		</if>
+		order by blueprint_phase_id
+	</select>
+
+	<insert id="addBlueprintPhase">
+		INSERT INTO blueprint_phase ( blueprint_phase_id,
+		workshop_id, NAME, start_time, length, unit ) VALUES
+		(#{phaseId},#{workshopId},#{phaseName},#{startTime},#{length},#{unit})
+	</insert>
+
+	<update id="editBlueprintPhase">
+		UPDATE blueprint_phase SET `name` = #{phaseName},
+		start_time = #{startTime}, length = #{length}, unit = #{unit} WHERE
+		blueprint_phase_id = #{phaseId} AND workshop_id = #{workshopId}
+	</update>
+
+
+
+	<delete id="deleteBlueprintItemByWorkshopId">
+		DELETE FROM blueprint_item WHERE workshop_id =
+		#{workshopId} AND group_id = #{groupId}
+	</delete>
+
+	<resultMap type="com.delta.workshop.model.BlueprintItem" id="blueprintItemMapper">
+		<id property="itemId" column="item_id" />
+		<result property="startPhaseId" column="start_phase_id" />
+		<result property="startPhasePosition" column="start_phase_position" />
+		<result property="startTime" column="start_time" />
+		<result property="endPhaseId" column="end_phase_id" />
+		<result property="endPhasePosition" column="end_phase_position" />
+		<result property="endTime" column="end_time" />
+		<result property="domainName" column="domain_name" />
+		<result property="proposalName" column="proposal_name" />
+		<result property="workshopId" column="workshop_id" />
+		<result property="groupId" column="group_id" />
+	</resultMap>
+
+	<select id="getBlueprintItems" resultMap="blueprintItemMapper">
+		SELECT item_id, start_phase_id, start_phase_position, start_time,
+		end_phase_id, end_phase_position, end_time, domain_name,proposal_name,
+		workshop_id, group_id FROM blueprint_item WHERE workshop_id =
+		#{workshopId}
+		<if test="groupId!=null and groupId!=''">
+			AND group_id = #{groupId}
+		</if>
+		order by item_id,group_id
+	</select>
+
+	<select id="getBlueprintItem" resultMap="blueprintItemMapper">
+		SELECT item_id,
+		start_phase_id, start_phase_position, start_time, end_phase_id,
+		end_phase_position, end_time, domain_name, proposal_name, workshop_id,
+		group_id FROM blueprint_item WHERE workshop_id = #{workshopId} and item_id = #{itemId} and group_id=#{groupId}
+	</select>
+
+	<insert id="addBlueprintItem" parameterType="com.delta.workshop.model.BlueprintItem">
+		INSERT INTO
+		blueprint_item(item_id, start_phase_id, start_phase_position,
+		start_time, end_phase_id, end_phase_position, end_time, domain_name,
+		proposal_name, workshop_id, group_id) VALUES
+		(#{itemId},#{startPhaseId},#{startPhasePosition},#{startTime},#{endPhaseId},#{endPhasePosition},#{endTime},#{domainName},#{proposalName},#{workshopId},#{groupId})
+	</insert>
+
+	<update id="editBlueprintItem" parameterType="com.delta.workshop.model.BlueprintItem">
+		UPDATE
+		blueprint_item SET
+		start_phase_id=#{startPhaseId},
+		start_phase_position=#{startPhasePosition},
+		start_time=#{startTime},
+		end_phase_id=#{endPhaseId},
+		end_phase_position=#{endPhasePosition},
+		end_time=#{endTime},
+		domain_name=#{domainName},
+		proposal_name=#{proposalName},
+		group_id=#{groupId}
+		where item_id = #{itemId} AND workshop_id =#{workshopId}
+	</update>
+
+</mapper>

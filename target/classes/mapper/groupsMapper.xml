@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.GroupsMapper">
+	<resultMap id="groupsMap" type="com.delta.workshop.model.Groups">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="memberCount" column="member_count" />
+		<result property="workshopId" column="workshop_id" />
+		<result property="createTime" column="create_time" />
+		<result property="editTime" column="edit_time" />
+	</resultMap>
+
+	<resultMap id="groupMemberMap" type="com.delta.workshop.model.GroupMember">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="department" column="department" />
+		<result property="groupId" column="group_id" />
+		<result property="workshopId" column="workshop_id" />
+	</resultMap>
+
+	<select id="getAll" resultMap="groupsMap">
+		select id, name, member_count,
+		workshop_id FROM groups WHERE workshop_id = #{workshopId} order by name
+	</select>
+
+	<insert id="add" parameterType="com.delta.workshop.model.Groups"
+		useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO groups
+		(name,member_count,workshop_id) VALUES
+		(#{name},#{memberCount},#{workshopId})
+	</insert>
+
+	<update id="edit" parameterType="com.delta.workshop.model.Groups">
+		UPDATE groups SET name =
+		#{name},member_count = #{memberCount},edit_time = #{editTime} WHERE id
+		= #{id}
+	</update>
+
+	<delete id="delete">
+		DELETE FROM groups WHERE id = #{id}
+	</delete>
+
+
+	<select id="getAllMember" resultMap="groupMemberMap">
+		select id,name,department,group_id,workshop_id FROM user_group_relation WHERE workshop_id =
+		#{workshopId} and group_id = #{groupId} order by id
+	</select>
+	
+	<insert id="addMember" parameterType="com.delta.workshop.model.GroupMember">
+		INSERT INTO user_group_relation (name,department,group_id,workshop_id) VALUES
+		(#{name},#{department},#{groupId},#{workshopId})
+	</insert>
+	
+	<update id="editMember" parameterType="com.delta.workshop.model.GroupMember">
+		UPDATE user_group_relation SET name = #{name},department = #{department}, group_id = #{groupId} WHERE id = #{id}
+	</update>
+	
+	<delete id="deleteMember">
+		DELETE FROM user_group_relation WHERE id = #{id}
+	</delete>
+
+</mapper>

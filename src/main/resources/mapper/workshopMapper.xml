@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.WorkshopMapper">
+	<resultMap id="BaseResultMap" type="com.delta.workshop.model.Workshop">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="industry_id" property="industryId" jdbcType="INTEGER" />
+		<result column="customer" property="customer" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="edit_time" property="editTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, name, industry_id,customer,create_time, edit_time
+	</sql>
+	
+	<select id="getAll" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from workshop
+	</select>
+	
+	
+	<select id="getById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from workshop where id = #{workshopId}
+	</select>
+	
+
+	<insert id="add" parameterType="com.delta.workshop.model.Workshop">
+		insert into workshop (name,industry_id,customer) values (#{name},#{industryId},#{customer})
+	</insert>
+	
+	<insert id="addCustomer" useGeneratedKeys="true" keyProperty="id">
+		insert into customer (customer) values (#{customer})
+	</insert>
+
+	<update id="edit" parameterType="com.delta.workshop.model.Workshop">
+		update workshop set name = #{name}, industry_id = #{industryId},customer = #{customer},
+		edit_time = #{editTime} where id = #{id}
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from workshop where id = #{id}
+	</delete>
+
+</mapper>

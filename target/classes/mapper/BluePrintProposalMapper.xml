@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.delta.workshop.mapper.BluePrintProposalMapper">
+	<resultMap id="BaseResultMap" type="com.delta.workshop.model.BluePrintProposal">
+		<result column="id" jdbcType="INTEGER" property="proposalId" />
+		<result column="name" jdbcType="VARCHAR" property="proposalName" />
+		<result column="workshopId" jdbcType="INTEGER" property="workshopId" />
+		<result column="domainname" jdbcType="VARCHAR" property="domainName" />
+		<result column="benefit" jdbcType="FLOAT" property="benefit" />
+		<result column="feasibility" jdbcType="FLOAT" property="feasibility" />
+		<result column="sequence" jdbcType="INTEGER" property="sequence" />
+	</resultMap>
+
+	<resultMap id="userMaps" type="com.delta.workshop.model.VoteUser">
+		<result property="userId" column="userId" jdbcType="INTEGER"/>
+		<result property="userName" column="userName" jdbcType="VARCHAR"/>
+		<result property="isVote" column="isVote" jdbcType="INTEGER"/>
+		<result property="isAbstain" column="isAbstain" jdbcType="INTEGER"/>
+	</resultMap>
+
+	<select id = "list" resultMap="BaseResultMap">
+		SELECT
+			blueprint_proposal_id id,
+			name name,
+			domain_name domainname,
+			workshop_id workshopId
+		FROM
+			blueprint_proposal
+		WHERE
+			workshop_id = #{workshopId,jdbcType=INTEGER}
+	</select>
+
+	<select id="users" resultMap = "userMaps" >
+		SELECT DISTINCT
+			u1.id userId,
+			u1.NAME userName,
+		
+		IF (ISNULL(p1.benefit_grade), FALSE, TRUE) isVote
+		FROM
+			blueprint_proposal_voting AS p1
+		RIGHT JOIN user_group_relation  AS u1 ON p1.user_id = u1.id
+		WHERE
+			1=1
+		<if test="groupId !=null ">
+			AND u1.group_id = #{groupId,jdbcType=INTEGER};
+		</if>
+	
+	</select>
+
+	<select id="listVote" resultMap="BaseResultMap" >
+		SELECT
+			t1.blueprint_proposal_id  id,
+			t1.`name` name,
+			t1.domain_name  domainname,
+			t3.benefit,
+			t3.feasibility
+		FROM
+			blueprint_proposal AS t1
+		LEFT JOIN (
+			SELECT
+				blueprint_proposal_id,
+				ROUND(AVG(benefit_grade), 2) benefit,
+				ROUND(AVG(feasibility_grade), 2) feasibility
+			FROM
+				blueprint_proposal_voting AS t2
+			LEFT JOIN user_group_relation AS t4 ON t4.id = t2.user_id
+			WHERE
+				1 = 1
+			<if test="gid !=null ">
+				AND t4.group_id = #{gid}
+			</if>
+			GROUP BY
+				blueprint_proposal_id
+		) AS t3 ON t1.blueprint_proposal_id = t3.blueprint_proposal_id
+		WHERE
+			1 = 1
+		<if test="wid !=null ">
+			AND t1.workshop_id  = #{wid}
+		</if>
+		ORDER BY
+			benefit * feasibility DESC,
+			benefit DESC,
+			feasibility DESC
+	</select>
+	
+	<select id ="getOrder" resultType="java.lang.Integer">
+		SELECT
+			COUNT(t1.blueprint_proposal_id)
+		FROM
+			blueprint_proposal_order AS t1
+		RIGHT JOIN blueprint_proposal AS t2 ON t1.blueprint_proposal_id = t2.blueprint_proposal_id
+		WHERE
+			t2.workshop_id = #{wid};
+	
+	</select>
+	<select id ="listOrder" resultMap="BaseResultMap">
+		SELECT
+			t1.blueprint_proposal_id id,
+			t1.`name` NAME,
+			t1.domain_name domainname,
+			t3.benefit,
+			t3.feasibility
+		FROM
+			blueprint_proposal AS t1
+		LEFT JOIN (
+			SELECT
+				blueprint_proposal_id,
+				ROUND(AVG(benefit_grade), 2) benefit,
+				ROUND(AVG(feasibility_grade), 2) feasibility
+			FROM
+				blueprint_proposal_voting AS t2
+			LEFT JOIN user_group_relation AS t4 ON t4.id = t2.user_id
+			WHERE
+				1 = 1
+			<if test="gid !=null ">
+				AND t4.group_id = #{gid}
+			</if>
+			GROUP BY
+				blueprint_proposal_id
+		) AS t3 ON t1.blueprint_proposal_id = t3.blueprint_proposal_id
+		LEFT JOIN blueprint_proposal_order AS t5 ON t5.blueprint_proposal_id = t1.blueprint_proposal_id
+		WHERE
+			1 = 1
+		<if test="wid !=null ">
+			AND t1.workshop_id  = #{wid}
+		</if>
+		ORDER BY
+			t5.sequence ASC,
+			benefit * feasibility DESC,
+			benefit DESC,
+			feasibility DESC
+	
+	</select>
+	
+	<select id="getOpportunity"  resultType="java.lang.String">
+		SELECT DISTINCT
+			(NAME)
+		FROM
+			opportunity_workshop
+		WHERE
+			workshop_id = #{workshopId}
+	</select>
+ 	
+	<update id="sequence"  parameterType="java.util.List">
+		REPLACE INTO blueprint_proposal_order
+			(blueprint_proposal_id,sequence) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator="," >  
+        	(#{item.id},#{item.sequence})   
+    	</foreach> 
+        
+	</update>
+	
+	
+	<update id="edit" parameterType="java.util.List">
+
+		<foreach collection="list" item="item" index="index" open=""
+			close="" separator=";">
+			update blueprint_proposal
+			<set>
+				<if test="item.domainName != null">
+					domain_name = #{item.domainName,jdbcType=VARCHAR},
+				</if>
+				edit_time = NOW()
+				where blueprint_proposal_id = #{item.proposalId,jdbcType=INTEGER}
+			</set>
+		</foreach>
+
+	</update>
+	
+	<insert id="doVote"  parameterType="java.util.List">
+		REPLACE INTO blueprint_proposal_voting 
+			(user_id,blueprint_proposal_id,feasibility_grade,benefit_grade,create_time) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator="," >  
+        	(#{item.userId},#{item.id},#{item.feasibility},#{item.benefit},now())   
+    	</foreach> 
+	</insert>
+	
+	<insert id="insertBlueprintProposal" parameterType="java.util.List">
+		INSERT INTO blueprint_proposal (
+			NAME,
+			create_time,
+			workshop_id
+		)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator="," >  
+        	(#{item.proposalName},NOW(),#{item.workshopId})   
+    	</foreach> 
+	</insert>
+	
+	
+	<delete id="clearOrder" >
+		DELETE t1
+		FROM
+			blueprint_proposal_order AS t1
+		JOIN blueprint_proposal AS t2 ON t1.blueprint_proposal_id = t2.blueprint_proposal_id
+		WHERE
+			t2.workshop_id = #{workshopId}
+	
+	</delete>
+</mapper>

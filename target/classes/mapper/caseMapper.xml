@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.CaseMapper">
+	<resultMap id="caseMap" type="com.delta.workshop.model.Case">
+		<id property="caseId" column="case_id" />
+		<result property="caseName" column="casename" />
+		<result property="workshopId" column="workshop_id" />
+		<collection property="measureSite" column="case_id" select="getMeasureSite"></collection>
+	</resultMap>
+
+	<resultMap id="measureSiteMap" type="com.delta.workshop.model.MeasureSite">
+		<id property="measureSiteId" column="measureSite_id" />
+		<result property="measureSiteName" column="measureSite" />
+		<result property="caseId" column="case_id" />
+		<collection property="feature" column="measureSite_id"
+			select="getFeature"></collection>
+		<collection property="mainProcessSite" column="measureSite_id"
+			select="getMainProcessSite"></collection>
+	</resultMap>
+
+	<resultMap id="featureMap" type="com.delta.workshop.model.Feature">
+		<id property="featureId" column="feature_id" />
+		<result property="featureName" column="feature_name" />
+		<result property="measureSiteId" column="measureSite_id" />
+	</resultMap>
+
+	<resultMap id="mainProcessSiteMap" type="com.delta.workshop.model.MainProcessSite">
+		<id property="mainProcessSiteId" column="mainProcessSite_id" />
+		<result property="mainProcessSiteName" column="mainprocesssite" />
+		<result property="measureSiteId" column="measureSite_id" />
+	</resultMap>
+
+	<resultMap id="nodeTreeMap" type="com.delta.workshop.model.NodeTree">
+		<id column="node_id" property="nodeId" jdbcType="INTEGER" />
+		<result column="tree_id" property="treeId" jdbcType="INTEGER" />
+		<result column="leaf" property="leaf" jdbcType="BIT" />
+		<result column="feature_parameter" property="featureParameter"
+			jdbcType="VARCHAR" />
+		<result column="threshold" property="threshold" jdbcType="REAL" />
+		<result column="samples" property="samples" jdbcType="REAL" />
+		<result column="groups" property="groups" jdbcType="VARCHAR" />
+		<result column="parentnode_id" property="parentNodeId"
+			jdbcType="INTEGER" />
+		<result column="direction" property="direction" jdbcType="VARCHAR" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+		<collection property="childerNodeTree" column="{tree_id=tree_id,node_id=node_id}"
+			select="getchilderNodeTree"></collection>
+	</resultMap>
+
+	<resultMap id="nodePicture" type="com.delta.workshop.model.NodePicture">
+		<id column="picture_id" property="pictureId" jdbcType="BIGINT" />
+		<result column="node_id" property="nodeId" jdbcType="INTEGER" />
+		<result column="type" property="type" jdbcType="VARCHAR" />
+		<result column="time" property="time" jdbcType="TIMESTAMP" />
+		<result column="x_value" property="xValue" jdbcType="VARCHAR" />
+		<result column="y_value" property="yValue" jdbcType="REAL" />
+		<result column="feature_parameter" property="featureParameter"
+			jdbcType="VARCHAR" />
+		<result column="threshold" property="threshold" jdbcType="REAL" />
+	</resultMap>
+
+	<select id="getConditionTree" resultMap="caseMap">
+		select * from `case`
+		where workshop_id = #{workshopId} order by case_id
+	</select>
+
+	<select id="getMeasureSite" resultMap="measureSiteMap">
+		select * from measuresite
+		where case_id = #{caseId} order by measuresite_id
+	</select>
+
+	<select id="getFeature" resultMap="featureMap">
+		select
+		t.feature_id,t.feature_name,t1.measuresite_id from feature t JOIN
+		(select * from measuresite_feature where measuresite_id
+		=#{measureSiteId}) t1 on t.feature_id = t1.feature_id order by
+		t.feature_id
+	</select>
+
+	<select id="getMainProcessSite" resultMap="mainProcessSiteMap">
+		SELECT
+		t.mainprocesssite_id,t.mainprocesssite,t1.measuresite_id FROM
+		mainprocesssite t join ( SELECT * FROM measuresite_mainprocesssite
+		WHERE measuresite_id = #{measureSiteId}) t1 on t.mainprocesssite_id
+		=t1.mainprocesssite_id order by t.mainprocesssite_id
+	</select>
+
+	<select id="getNodeTree" resultMap="nodeTreeMap">
+		select * from node where
+		tree_id = (select mmf_id from mmf_relation where
+		measuresite_feature_id = #{featureId} and
+		measuresite_mainprocesssite_id = #{mainprocesssiteId}) and
+		parentnode_id is NULL order by node_id
+	</select>
+
+	<select id="getchilderNodeTree" resultMap="nodeTreeMap"
+		parameterType="java.util.Map">
+		select * from node where tree_id = #{tree_id} and
+		parentnode_id = #{node_id} order by node_id
+	</select>
+
+	<select id="getNodePicture" resultMap="nodePicture">
+		select * from
+		distribution_picture WHERE node_id =#{nodeId} order by time
+	</select>
+
+</mapper>

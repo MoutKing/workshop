@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.OpportunityTemplateMapper">
+	<resultMap id="BaseResultMap" type="com.delta.workshop.model.OpportunityTemplate">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="painpoint_id" property="painpointId" jdbcType="INTEGER" />
+		<result column="painpoint_name" property="painpointName" jdbcType="VARCHAR" />
+		<result column="opportunityclass_id" property="opportunityClassId" jdbcType="INTEGER" />
+		<result column="opportunityclass_name" property="opportunityClassName" jdbcType="VARCHAR" />
+		<result column="customer" property="customer" jdbcType="VARCHAR" />
+		<result column="content" property="content" jdbcType="VARCHAR" />
+		<result column="industry_id" property="industryId" jdbcType="INTEGER" />
+		<result column="target_id" property="targetId" jdbcType="INTEGER" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="edit_time" property="editTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<select id="getbyCondition" resultMap="BaseResultMap">
+		SELECT t1.id, t1.name,t1.industry_id,t1.target_id,
+		t1.painpoint_id, t2.name painpoint_name, t1.opportunityclass_id,
+		t3.name opportunityclass_name, t1.customer, t1.content,
+		t1.create_time,
+		t1.edit_time from opportunity_template t1 JOIN painpoint_template t2 on
+		t1.painpoint_id = t2.id JOIN opportunity_class t3 ON
+		t1.opportunityclass_id = t3.id
+		WHERE 1=1
+		<if test="industryId!=null and industryId != ''">
+		 	and t1.industry_id= #{industryId}
+		</if> 
+		<if test="targetId!=null and targetId != ''">
+			and t1.target_id = #{targetId}
+		</if> 
+		<if test="customer!=null and customer != ''">
+			and t1.customer=#{customer}
+		</if> 
+		order by t1.id desc
+		
+	</select>
+
+	<insert id="add" parameterType="com.delta.workshop.model.OpportunityTemplate">
+		insert into
+		opportunity_template (name, painpoint_id,
+		opportnityclass_id, customer,
+		content,industry_id,target_id)
+		values (#{name,jdbcType=VARCHAR},
+		#{painpointId,jdbcType=INTEGER},
+		#{opportnityClassId,jdbcType=INTEGER}, #{customer,jdbcType=VARCHAR},
+		#{content,jdbcType=VARCHAR},#{industryId,jdbcType=INTEGER}, 
+  		#{targetId,jdbcType=INTEGER})
+	</insert>
+
+	<update id="edit" parameterType="com.delta.workshop.model.OpportunityTemplate">
+		update opportunity_template
+		set
+		name = #{name,jdbcType=VARCHAR},
+		painpoint_id =#{painpointId,jdbcType=INTEGER},
+		opportnityclass_id =#{opportnityclassId,jdbcType=INTEGER},
+		customer =#{customer,jdbcType=VARCHAR},
+		content = #{content,jdbcType=VARCHAR},
+		industry_id = #{industryId,jdbcType=INTEGER},
+      	target_id = #{targetId,jdbcType=INTEGER},
+		edit_time = #{editTime,jdbcType=TIMESTAMP}
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from opportunity_template where id = #{id,jdbcType=INTEGER}
+	</delete>
+</mapper>

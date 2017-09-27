@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.WorkshopSessionMapper">
+	<resultMap id="BaseResultMap" type="com.delta.workshop.model.WorkshopSession">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="session_date" property="sessionDate" jdbcType="VARCHAR" />
+		<result column="duration" property="duration" jdbcType="VARCHAR" />
+		<result column="begin_time" property="beginTime" jdbcType="VARCHAR" />
+		<result column="end_time" property="endTime" jdbcType="VARCHAR" />
+		<result column="workshop_id" property="workshopId" jdbcType="INTEGER" />
+		<result column="order_index" property="orderIndex" jdbcType="INTEGER" />
+		<result column="session_id" property="sessionId" jdbcType="INTEGER" />
+		<collection property="subSession" column="session_id" select="getSubByWorkshop"></collection>
+	</resultMap>
+
+	<select id="getByWorkshop" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		SELECT
+		t1.id,
+		t1.`name`,
+		t2.session_date,
+		t2.duration,
+		t2.begin_time,
+		t2.end_time,
+		t2.workshop_id,
+		t2.order_index,
+		t2.session_id
+		FROM
+		(SELECT id, `name` FROM session_template WHERE parent_id IS NULL) t1
+		LEFT JOIN
+		(SELECT * FROM workshop_session WHERE workshop_id = #{workshopId}) t2
+		ON t1.id = t2.session_id
+		UNION ALL
+		SELECT
+		id,
+		`name`,
+		session_date,
+		duration,
+		begin_time,
+		end_time,
+		workshop_id,
+		order_index,
+		session_id
+		FROM
+		workshop_session_temp
+		WHERE
+		workshop_id = #{workshopId}
+		ORDER BY
+		IFNULL(order_index, id)
+	</select>
+
+	<select id="getSubByWorkshop" resultMap="BaseResultMap">
+		select
+		t1.id, t1.`name`,t2.duration,t2.workshop_id
+		FROM
+		(SELECT id,`name` from session_template where parent_id = #{id}) t1
+		LEFT JOIN
+		(SELECT session_id, workshop_id, duration FROM workshop_sub_session WHERE
+		workshop_id = #{workshopId}) t2 ON t1.id = t2.session_id
+	</select>
+
+	<delete id="cleanSession" parameterType="java.lang.Integer">
+		DELETE FROM workshop_session WHERE workshop_id = #{workshopId}
+	</delete>
+	
+	<delete id="cleanTemp" parameterType="java.lang.Integer">
+		DELETE FROM workshop_session_temp WHERE workshop_id = #{workshopId}
+	</delete>
+
+	<insert id="addWorkshopSession" parameterType="java.util.List">
+		insert into workshop_session (session_id, name, session_date, duration,
+		begin_time, end_time, workshop_id, order_index) values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.sessionId},#{item.name},#{item.sessionDate},#{item.duration},#{item.beginTime},#{item.endTime},#{item.workshopId},#{item.orderIndex})
+		</foreach>
+	</insert>
+
+	<insert id="addWorkshopSessionTemp" parameterType="java.util.List">
+		insert into workshop_session (name, session_date, duration,
+		begin_time, end_time, workshop_id, order_index) values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.name},#{item.sessionDate},#{item.duration},#{item.beginTime},#{item.endTime},#{item.workshopId},#{item.orderIndex})
+		</foreach>
+	</insert>
+
+	<delete id="cleanSubSession" parameterType="java.lang.Integer">
+		DELETE FROM workshop_sub_session WHERE workshop_id = #{workshopId}
+	</delete>
+	
+	<insert id="addWorkshopSubSession" parameterType="java.util.List">
+		insert into workshop_sub_session (session_id, duration,workshop_id) values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id},#{item.duration},#{item.workshopId})
+		</foreach>
+	</insert>
+</mapper>

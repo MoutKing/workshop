@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.QuestionnaireMapper">
+	<resultMap id="questionnaireMap" type="com.delta.workshop.model.Questionnaire">
+		<id column="workshop_id" property="workshopId"/> 
+		<result column="preface" property="preface"/> 
+		<collection property="questions" column="question_id" ofType="com.delta.workshop.model.QuestionnaireQuestion">
+			<id column="question_id" property="questionId"/>
+			<result column="question" property="question"/>
+			<result column="question_sequence" property="questionSequence"/>
+			<result column="answer_type" property="answerType"/>
+			<collection property="questionAnswers" column="answer_id" ofType="com.delta.workshop.model.QuestionAnswer">
+				<id column="answer_id" property="answerId"/>
+				<result column="answer" property="answer"/>
+				<result column="answer_count" property="answerCount"/>
+				<result column="precent" property="precent"/>
+				<result column="status" property="status"/>
+			</collection>
+		</collection>
+	</resultMap>
+	
+	<select id="getQuestionnaire" resultMap="questionnaireMap">
+		SELECT t.workshop_id, t.preface, t1.question_id, t1.question, t1.answer_type, t1.question_sequence, t2.answer_id, t2.answer FROM questionnaire_preface t LEFT JOIN questionnaire_question t1 ON t.workshop_id = t1.workshop_id LEFT JOIN questionnaire_answer t2 ON t1.question_id = t2.questionnaire_question_id WHERE t.workshop_id = #{workshopId} ORDER BY IF(question_sequence is null,question_id,question_sequence) , answer_id	
+	</select>
+	
+	<insert id="addPreface">
+		INSERT INTO questionnaire_preface(workshop_id,preface) VALUES(#{workshopId},#{preface})
+	</insert>
+	
+	<delete id="deletePreface">
+		DELETE FROM questionnaire_preface WHERE workshop_id = #{wokshopId}
+	</delete>
+	
+	<insert id="addQuestion" useGeneratedKeys="true" keyProperty="questionId">
+		INSERT INTO questionnaire_question(question,answer_type,workshop_id) VALUES(#{question},#{answerType},#{workshopId})
+	</insert>
+	
+	<insert id="addAnswer" parameterType="java.util.List">
+		INSERT INTO questionnaire_answer(answer_id,answer,questionnaire_question_id) VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.answerId},#{item.answer},#{questionId})
+		</foreach>
+	</insert>
+	
+	<update id="editQuestion">
+		UPDATE questionnaire_question SET question = #{question},answer_type = #{answerType} WHERE question_id = #{questionId}
+	</update>
+	
+	<delete id="deleteAnswer">
+		DELETE FROM questionnaire_answer WHERE questionnaire_question_id = #{id} 
+	</delete>
+	
+	<delete id="deleteQuestion">
+		DELETE FROM questionnaire_question WHERE question_id = #{id} 
+	</delete>
+	
+	<insert id="addUserAnswerGeneral" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO questionnaire_user_answer_general(username,workshop_id) VALUES(#{username},#{workshopId})
+	</insert>
+	
+	<insert id="addUserAnswer">
+		insert into questionnaire_user_answer (question_id, answer_id, answer_content, questionnaire_general_id) values 
+    	<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.questionId}, #{item.answerId}, #{item.answerContent}, #{id})
+		</foreach>
+	</insert>
+	
+	<select id="getQuestionnaireCount" resultType="java.lang.Integer">
+		 SELECT count(id) FROM questionnaire_user_answer_general WHERE workshop_id = #{workshopId}
+	</select>
+	
+	<select id="getQuestionSummary" resultMap="questionnaireMap">
+		SELECT t.workshop_id,t.question_id, t.question, t.answer_type,t.question_sequence,t1.answer_id, t1.answer, t2.answer_count,t2.precent 
+		FROM questionnaire_question t 
+		JOIN questionnaire_answer t1 ON t.question_id = t1.questionnaire_question_id 
+		LEFT JOIN ( 
+			SELECT 
+				t1.question_id, 
+				t1.answer_id, 
+				COUNT(t1.answer_id) answer_count,
+				COUNT(t1.answer_id) / ( SELECT count(id) FROM questionnaire_user_answer_general WHERE workshop_id = #{workshopId} ) precent 
+			FROM questionnaire_user_answer_general t 
+			LEFT JOIN questionnaire_user_answer t1 ON t.id = t1.questionnaire_general_id 
+			WHERE t.workshop_id = #{workshopId} 
+			GROUP BY t1.question_id, t1.answer_id ) t2 
+		ON t2.question_id = t.question_id AND t2.answer_id = t1.answer_id 
+		WHERE t.workshop_id = #{workshopId} 
+		UNION ALL
+		SELECT
+			tt.workshop_id,tt.question_id,tt.question,tt.answer_type,tt.question_sequence,NULL,NULL,NULL,NULL
+		FROM questionnaire_question tt
+		LEFT JOIN (SELECT question_id, answer_content FROM questionnaire_user_answer_general t JOIN questionnaire_user_answer t1 ON t.id = t1.questionnaire_general_id WHERE t.workshop_id = #{workshopId}) tt1 ON tt.question_id = tt1.question_id
+		WHERE tt.answer_type = 3 
+		ORDER BY IF(question_sequence is null,question_id,question_sequence), answer_id
+	</select>
+	
+	<select id="getnoChoiceQuestionSummary" resultType="java.util.HashMap">
+		SELECT
+			tt.question_id,tt.question,tt.question_sequence,tt1.answer_content
+		FROM questionnaire_question tt
+		JOIN (SELECT question_id, answer_content FROM questionnaire_user_answer_general t JOIN questionnaire_user_answer t1 ON t.id = t1.questionnaire_general_id WHERE t.workshop_id = #{workhopId}) tt1 ON tt.question_id = tt1.question_id
+		WHERE tt.answer_type = 3 
+		ORDER BY IF(question_sequence is null,tt.question_id,question_sequence)
+	</select>
+	
+	<select id="getUsercount" resultType="java.lang.Integer">
+		select count(1) from questionnaire_user_answer_general where username =#{username}
+	</select>
+	
+	
+
+	<select id="getResultByUsername" resultMap="questionnaireMap">
+		SELECT t.workshop_id,t1.question_id, t1.question, t1.answer_type,t1.question_sequence, t2.answer_id, t2.answer,if(t2.answer_id=t4.answer_id,1,0) STATUS,t4.answer_content
+		FROM questionnaire_preface t 
+		LEFT JOIN questionnaire_question t1 ON t.workshop_id = t1.workshop_id 
+		LEFT JOIN questionnaire_answer t2 ON t1.question_id = t2.questionnaire_question_id 
+		LEFT JOIN questionnaire_user_answer_general t3 on t.workshop_id = t3.workshop_id 
+		LEFT JOIN questionnaire_user_answer t4 on t3.id = t4.questionnaire_general_id AND t1.question_id = t4.question_id AND t2.answer_id = t4.answer_id
+		WHERE t.workshop_id = #{workshopId} AND t3.username = #{username} AND t1.answer_type != 3 
+		UNION ALL
+		SELECT t.workshop_id,t2.question_id, t2.question, t2.answer_type, t2.question_sequence, t1.answer_id, null,null, t1.answer_content  
+		FROM questionnaire_user_answer_general t 
+		LEFT JOIN questionnaire_user_answer t1 on t.id = t1.questionnaire_general_id
+		LEFT JOIN questionnaire_question t2 on t1.question_id = t2.question_id
+		WHERE t.username = #{username} AND t.workshop_id = #{workshopId} AND t2.answer_type = 3
+		ORDER BY IF(question_sequence is null,question_id,question_sequence)	
+	</select>
+	
+	<delete id="clearUserAnswer">
+		DELETE from questionnaire_user_answer_general WHERE workshop_id = #{workshopId}
+	</delete>
+	
+	<update id="orderQuestion">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+        update questionnaire_question
+        <set>
+            question_sequence=${item.questionSequence}
+        </set>
+        where question_id = ${item.questionId}
+    </foreach>      
+	</update>
+
+</mapper>

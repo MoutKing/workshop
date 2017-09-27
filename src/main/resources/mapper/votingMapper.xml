@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.VotingMapper">
+	
+	<resultMap id="userMap" type="com.delta.workshop.model.VoteUser">
+		<result property="userId" column="userId" jdbcType="INTEGER"/>
+		<result property="userName" column="userName" jdbcType="VARCHAR"/>
+		<result property="isVote" column="isVote" jdbcType="INTEGER"/>
+		<result property="isAbstain" column="isAbstain" jdbcType="INTEGER"/>
+	</resultMap>
+	
+	<resultMap id="painpointMap" type="com.delta.workshop.model.VotingPainPoint">
+		<result property="workshopId" column="workshopId" jdbcType="INTEGER"/>
+		<result property="groupId" column="groupId" jdbcType="INTEGER"/>
+		<result property="groupName" column="groupName" jdbcType="VARCHAR"/>
+		<result property="id" column="painPointId" jdbcType="INTEGER"/>
+		<result property="name" column="painPointName" jdbcType="VARCHAR"/>
+		<result property="aspectName" column="painPointAspectName" jdbcType="VARCHAR"/>
+		<result property="aspectId" column="painPointAspectId" jdbcType="INTEGER"/>
+		<result property="factorName" column="painPointFactorName" jdbcType="VARCHAR"/>
+		<result property="factorId" column="painPointFactorId" jdbcType="INTEGER"/>
+		<result property="influence" column="painPointinfluence" jdbcType="VARCHAR"/>
+		<result property="grade" column="grade" jdbcType="FLOAT"/>
+	</resultMap>
+	
+	<resultMap id="improvewayMap" type="com.delta.workshop.model.VotingImproveway">
+	    <id column="id" jdbcType="INTEGER" property="id" />
+	    <result column="type" jdbcType="VARCHAR" property="type" />
+	    <result column="subject" jdbcType="VARCHAR" property="subject" />
+	    <result column="check_item" jdbcType="VARCHAR" property="checkItem" />
+	    <result column="groupName" jdbcType="VARCHAR" property="groupName" />
+	    <result column="improveway" jdbcType="VARCHAR" property="improveway" />
+	    <result column="group_id" jdbcType="INTEGER" property="groupId" />
+	    <result column="workshop_id" jdbcType="INTEGER" property="workshopId" />
+	    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+	    <result column="edit_time" jdbcType="TIMESTAMP" property="editTime" />
+	    <result property="grade" column="grade" jdbcType="FLOAT"/>
+  	</resultMap>
+	
+	<resultMap id="opportunityMap" type="com.delta.workshop.model.VotingOpportunity">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="customer" property="customer" jdbcType="VARCHAR" />
+		<result column="content" property="content" jdbcType="VARCHAR" />
+		<result column="workshop_id" property="workshopId" jdbcType="INTEGER" />
+		<result column="painpoint_id" property="painpointId" jdbcType="INTEGER" />
+		<result column="painpoint_name" property="painpointName"
+			jdbcType="VARCHAR" />
+		<result column="class_id" property="classId" jdbcType="INTEGER" />
+		<result column="class_name" property="className" jdbcType="VARCHAR" />
+		<result column="group_id" property="groupId" jdbcType="INTEGER" />
+		<result column="group_name" property="groupName" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="edit_time" property="editTime" jdbcType="TIMESTAMP" />
+		<result property="grade" column="grade" jdbcType="FLOAT"/>
+	</resultMap>
+	<select id="user1" resultMap = "userMap" >
+		SELECT DISTINCT
+			u1.id userId,
+			u1.NAME userName,
+		
+		IF (p1.sequence = 0, TRUE, FALSE) isAbstain,
+		
+		IF (ISNULL(p1.sequence), FALSE, TRUE) isVote
+		FROM
+			painpoint_voting AS p1
+		RIGHT JOIN user_group_relation  AS u1 ON p1.user_id = u1.id
+		WHERE
+			u1.workshop_id = #{workShopId}
+		<if test="groupId !=null ">
+			AND u1.group_id = #{groupId};
+		</if>
+	
+	</select>
+	
+	<select id="user2" resultMap="userMap">
+		SELECT DISTINCT
+			u1.id userId,
+			u1.NAME userName,
+		
+		IF (t1.sequence = 0, TRUE, FALSE) isAbstain,
+		
+		IF (ISNULL(t1.sequence), FALSE, TRUE) isVote
+		FROM
+			improve_way_voting AS t1
+		RIGHT JOIN user_group_relation AS u1 ON t1.user_id = u1.id
+		WHERE
+			u1.workshop_id = #{workShopId}
+		<if test="groupId !=null ">
+			AND u1.group_id = #{groupId};
+		</if>
+	
+	</select>
+	
+	<select id="user3" resultMap="userMap">
+		SELECT DISTINCT
+			u1.id userId,
+			u1.NAME userName,
+		
+		IF (t1.sequence = 0, TRUE, FALSE) isAbstain,
+		
+		IF (ISNULL(t1.sequence), FALSE, TRUE) isVote
+		FROM
+			opportunity_voting AS t1
+		RIGHT JOIN user_group_relation AS u1 ON t1.user_id = u1.id
+		WHERE
+			u1.workshop_id = #{workShopId}
+		<if test="groupId !=null ">
+			AND u1.group_id = #{groupId};
+		</if>
+	
+	</select>
+	
+		<insert id="doVoting1"  parameterType="java.util.List">
+		REPLACE   INTO painpoint_voting 
+			(user_id,painpoint_id,sequence) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator="," >  
+        	(#{item.userId},#{item.id},#{item.sequence})  
+    	</foreach> 
+	</insert>
+	
+	<insert id="doVoting2"  parameterType="java.util.List">
+		REPLACE INTO improve_way_voting 
+			(user_id,improve_way_id,sequence) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator="," >  
+        	(#{item.userId},#{item.id},#{item.sequence})   
+    	</foreach> 
+	</insert>
+	
+	<insert id="doVoting3"  parameterType="java.util.List">
+		REPLACE INTO opportunity_voting 
+			(user_id,opportunity_id,sequence) 
+		VALUES 
+		<foreach collection="list" item="item" index="index" separator="," >  
+        	(#{item.userId},#{item.id},#{item.sequence})   
+    	</foreach>
+	</insert>
+	
+	
+	<select id="listPainpoint" resultMap="painpointMap" >
+		SELECT DISTINCT
+			p2.workshop_id workshopId,
+			p2.group_id groupId,
+			p5.`name` groupName,
+			p2.id painPointId,
+			p2.`name` painPointName,
+			p2.influence painPointinfluence,
+			p2.aspect_id painPointAspectId,
+			p3.`name` painPointAspectName,
+			p2.factor_id painPointFactorId,
+			p4.`name` painPointFactorName,
+			p1.grade
+		FROM
+			painpoint AS p2
+		LEFT JOIN painpoint_aspect AS p3 ON p3.id = p2.aspect_id
+		LEFT JOIN painpoint_factor AS p4 ON p2.factor_id = p4.id
+		LEFT JOIN (
+			SELECT
+				painpoint_id id,
+				ROUND(AVG(sequence), 2) grade
+			FROM
+				painpoint_voting
+			WHERE
+				sequence &lt;&gt; 0
+			GROUP BY
+				painpoint_id
+		) AS p1 ON p2.id = p1.id
+		LEFT JOIN groups AS p5 ON p2.group_id = p5.id
+		WHERE
+			p2.workshop_id = 1
+			AND p2.group_id  &lt;&gt; 0
+			<if test="groupId !=null ">
+				AND p2.group_id = #{groupId}
+			</if>
+		ORDER BY
+			p1.grade DESC,
+			p2.id;
+	
+	</select>
+	
+	<select id="listImprove" resultMap="improvewayMap" >
+		select 
+			p2.id id, 
+			type, 
+			subject, 
+			check_item, 
+			improveway, 
+			p2.workshop_id, 
+			p2.group_id,
+			p3.`name` groupName,
+			p1.grade
+		from 
+			improve_way AS p2
+		LEFT JOIN (
+			SELECT
+				improve_way_id,
+				ROUND(AVG(sequence), 2) grade
+			FROM
+				improve_way_voting
+			WHERE
+				sequence &lt;&gt; 0
+			GROUP BY
+				improve_way_id
+		
+		) AS p1 ON p2.id = p1.improve_way_id
+		LEFT JOIN groups AS p3 ON p2.group_id = p3.id
+		where 
+	    	p2.workshop_id = #{workShopId} 
+		AND p2.group_id  &lt;&gt; 0
+		<if test="groupId !=null ">
+			AND p2.group_id = #{groupId}
+		</if>
+		GROUP BY
+			p2.id
+		ORDER BY  grade DESC, p2.id;
+	</select>
+	
+	<select id="listOpportunity" resultMap="opportunityMap" >
+		SELECT
+			t1.id id,
+			t1. NAME NAME,
+			t1.content content,
+			t1.customer customer,
+			t1.painpoint_id painpoint_id,
+			t2.`name` painpoint_name,
+			t1.class_id ,
+			t3.`name` class_name,
+			t1.workshop_id,
+			t1.group_id,
+			t5.`name` group_name,
+			t4.grade
+		FROM
+			opportunity_workshop t1
+		LEFT JOIN painpoint t2 ON t1.painpoint_id = t2.id
+		LEFT JOIN opportunity_class t3 ON t3.id = t1.class_id
+		LEFT JOIN (
+			SELECT
+				opportunity_id,
+				ROUND(AVG(sequence), 2) grade
+			FROM
+				opportunity_voting
+			WHERE
+				sequence &lt;&gt; 0
+			GROUP BY
+				opportunity_id
+		
+		) AS t4 ON t1.id = t4.opportunity_id
+		LEFT JOIN groups AS t5 ON t1.group_id = t5.id
+		WHERE
+			 t1.workshop_id = #{workShopId}
+		AND t1.group_id &lt;&gt; 0
+		<if test="groupId !=null ">
+			AND t1.group_id = #{groupId}
+		</if>
+		GROUP BY
+			t1.id
+		ORDER BY
+			grade DESC,
+			t1.id;
+	
+	</select>
+
+</mapper>

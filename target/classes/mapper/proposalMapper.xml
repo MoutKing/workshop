@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.delta.workshop.mapper.ProposalMapper" >
+  <resultMap id="proposalMap" type="com.delta.workshop.model.Proposal" >
+    <id column="proposal_id" property="proposalId" jdbcType="INTEGER" />
+     <result column="chance" property="chance" jdbcType="VARCHAR" />
+     <result column="background" property="background" jdbcType="VARCHAR" />
+     <result column="target" property="target" jdbcType="VARCHAR" />
+     <result column="precondition" property="precondition" jdbcType="VARCHAR" />
+    <result column="proposal_name" property="proposalName" jdbcType="VARCHAR" />
+    <result column="quantization_id" property="quantizationId" jdbcType="INTEGER" />
+    <result column="benefit" property="benefit" jdbcType="REAL" />
+    <result column="possibility" property="possibility" jdbcType="REAL" />
+    <result column="group_id" property="groupId" jdbcType="INTEGER" />
+	<collection property="domains" column="domain_id" ofType="com.delta.workshop.model.ProposalDomain">
+		<id column="domain_id" property="domainId"/>
+		<result column="domain_name" property="domainName"/>
+		<result column="domain_status" property="domainStatus"/>
+	</collection>
+    <collection property="steps" column="step_id" ofType="com.delta.workshop.model.ProposalStep">
+    	<id column="step_id" property="stepId"/>
+		<result column="step_name" property="stepName"/>
+		<result column="sequence" property="sequence"/>
+		<result column="step_content" property="stepContent"/>
+    </collection>
+    <collection property="qualitativeBenefitAnalysis" column="qualitative_benefit_id" ofType="com.delta.workshop.model.ProposalQualitativeBenefitAnalysis">
+    	<id column="qualitative_benefit_id" property="qualitativeBenefitId"/>
+		<result column="qualitative_benefit_item" property="qualitativeBenefitItem"/>
+		<result column="score" property="score"/>
+    </collection>
+    <collection property="interestpersons" column="interestperson_id" ofType="com.delta.workshop.model.ProposalInterestperson">
+    	<id column="interestperson_id" property="interestpersonId"/>
+		<result column="interestperson_name" property="interestpersonName"/>
+		<result column="status" property="status"/>
+    </collection>
+  </resultMap>
+  
+  <select id="getProposal" resultMap="proposalMap">
+  		SELECT 
+			t.proposal_id,
+			t.proposal_name,
+			t.quantization_id,
+			t.benefit,
+			t.possibility,
+			t.group_id,t.chance, 
+			t.background, 
+			t.target, 
+			t.precondition,
+			t.workshop_id,
+			t1.domain_id,
+			t1.domain_name,
+			t1.domain_status,
+			t2.step_id,
+			t2.step_name,
+			t2.sequence,
+			t2.step_content,
+			t3.qualitative_benefit_id,
+			t3.qualitative_benefit_item,
+			t3.score,
+			t4.interestperson_id,
+			t4.interestperson_name,
+			t4.status
+		FROM proposal t 
+		LEFT JOIN proposal_domain t1 on t.proposal_id = t1.proposal_id
+		LEFT JOIN proposal_step t2 ON t.proposal_id = t2.proposal_id
+		LEFT JOIN proposal_qualitative_benefit_analysis t3 ON t.proposal_id = t3.proposal_id
+		LEFT JOIN proposal_interestperson t4 ON t.proposal_id = t4.proposal_id
+		WHERE t.workshop_id = #{workshopId} 
+		<if test="groupId != null and groupId !=''">
+			AND t.group_id = #{groupId}
+		</if>
+		ORDER BY t.proposal_id,t1.domain_id,t2.sequence,t3.qualitative_benefit_id,t4.interestperson_id
+  </select>  
+  
+  <insert id="addProposal">
+  		INSERT INTO proposal(proposal_name,quantization_id,group_id,workshop_id) VALUES(#{proposalName},#{quantizationId},#{groupId},#{workshopId})
+  </insert>  
+  
+  <insert id="addProposalDomains">
+  		INSERT INTO proposal_domain(domain_id,domain_name,proposal_id) VALUES
+  		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.domainId},#{item.domainName},#{proposalId})
+		</foreach>
+  </insert> 
+   
+  <insert id="addProposalSteps">
+  		INSERT INTO proposal_step(step_id,step_name,sequence,proposal_id) VALUES
+  		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.stepId},#{item.stepName},#{item.sequence},#{proposalId})
+		</foreach>
+  </insert>  
+  <insert id="addQualitativeBenefitAnalysis">
+  		INSERT INTO proposal_qualitative_benefit_analysis(qualitative_benefit_id,qualitative_benefit_item,proposal_id) VALUES
+  		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.qualitativeBenefitId},#{item.qualitativeBenefitItem},#{proposalId})
+		</foreach>
+  </insert> 
+   
+  <insert id="addProposalInterestpersons">
+  		INSERT INTO proposal_interestperson(interestperson_id,interestperson_name,proposal_id) VALUES
+  		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.interestpersonId},#{item.interestpersonName},#{proposalId})
+		</foreach>
+  </insert>  
+ 
+  <update id="updateProposal">
+  		UPDATE proposal 
+  		<set>
+  			<if test="chance != null and chance !=''" >
+        		chance = #{chance,jdbcType=VARCHAR},
+      		</if>
+	      	<if test="background != null and background !=''" >
+	        	background = #{background,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="target != null and target !=''" >
+	        	target = #{target,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="quantizationId != null and quantizationId !=''" >
+		        quantization_id = #{quantizationId,jdbcType=INTEGER},
+		    </if>
+		    <if test="benefit != null and benefit !=''" >
+		        benefit = #{benefit,jdbcType=REAL},
+		    </if>
+		    <if test="possibility != null and possibility !=''" >
+		        possibility = #{possibility,jdbcType=REAL},
+		    </if>
+		    <if test="precondition != null and precondition !=''" >
+		        precondition = #{precondition,jdbcType=VARCHAR},
+		    </if>
+		    <if test="groupId != null and groupId !=''">
+		    	group_id = #{groupId}
+		    </if>
+  		</set>
+  		 where proposal_id = #{proposalId}
+  </update> 
+  
+  <update id="updateProposalDomains">
+  	<foreach collection="list" item="item" index="index" separator=";">
+		UPDATE proposal_domain set domain_status = #{item.domainStatus} WHERE domain_id = #{item.domainId}
+	</foreach>
+  </update>
+  
+  <update id="updateProposalSteps">
+  	<foreach collection="list" item="item" index="index" separator=";">
+		UPDATE proposal_step set step_content = #{item.stepContent} WHERE step_id = #{item.stepId}
+	</foreach>
+  </update>
+  
+  <update id="updateQualitativeBenefitAnalysis">
+  	<foreach collection="list" item="item" index="index" separator=";">
+		UPDATE proposal_qualitative_benefit_analysis set score = #{item.score} WHERE qualitative_benefit_id = #{item.qualitativeBenefitId}
+	</foreach>
+  </update>
+  
+  <update id="updateInterestpersons">
+  	<foreach collection="list" item="item" index="index" separator=";">
+		UPDATE proposal_interestperson set status = #{item.status} WHERE interestperson_id = #{item.interestpersonId}
+	</foreach>
+  </update>
+  
+  <delete id="deleteProposalDomains">
+  		DELETE FROM proposal_domain WHERE proposal_id = #{proposalId}
+  </delete>
+  
+  <delete id="deleteProposalSteps">
+  		DELETE FROM proposal_step WHERE proposal_id = #{proposalId}	
+  </delete>
+  
+  <delete id="deleteQualitativeBenefitAnalysis">
+  		DELETE FROM proposal_qualitative_benefit_analysis WHERE proposal_id = #{proposalId}
+  </delete>
+  
+  <delete id="deleteProposalInterestpersons">
+  		DELETE FROM proposal_interestperson WHERE proposal_id = #{proposalId}
+  </delete>
+  
+</mapper>
